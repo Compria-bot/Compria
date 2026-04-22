@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compria — Asistente de Compras Igarreta</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+#app{display:flex;flex-direction:column;height:750px;width:100%;max-width:720px;border:0.5px solid #e0e0da;border-radius:12px;overflow:hidden;background:#ffffff;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
+#hdr{padding:10px 15px;border-bottom:0.5px solid #e0e0da;display:flex;align-items:center;gap:10px;background:#f5f5f3}
+.hico{width:32px;height:32px;border-radius:7px;background:#0F6E56;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;letter-spacing:-0.5px;flex-shrink:0}
+#hdr h2{font-size:13px;font-weight:500;color:#1a1a18}
+#hdr p{font-size:11px;color:#888880}
+.pill-on{width:7px;height:7px;border-radius:50%;background:#1D9E75;margin-left:auto;flex-shrink:0}
+#ctx{padding:7px 13px;border-bottom:0.5px solid #e0e0da;display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#fff}
+.ctx-lbl{font-size:11px;color:#888880;white-space:nowrap}
+select{font-size:12px;padding:3px 7px;border-radius:6px;border:0.5px solid #ccc;background:#f5f5f3;color:#1a1a18;cursor:pointer;max-width:190px}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;background:#E1F5EE;color:#0F6E56;border:0.5px solid #5DCAA5;white-space:nowrap}
+#msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.bbl{max-width:83%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.6}
+.msg.bot .bbl{background:#f5f5f3;color:#1a1a18;border-radius:4px 14px 14px 14px}
+.msg.user .bbl{background:#0F6E56;color:white;border-radius:14px 4px 14px 14px}
+.av{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:2px}
+.av.bot{background:#0F6E56;color:white}
+.av.user{background:#B5D4F4;color:#0C447C}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chip{font-size:11px;padding:4px 10px;border:0.5px solid #ccc;border-radius:20px;cursor:pointer;color:#666;background:#fff}
+.chip:hover{background:#f5f5f3;color:#1a1a18}
+#typing{display:none;gap:8px;align-items:center;padding:2px 14px}
+.dot{width:5px;height:5px;border-radius:50%;background:#aaa;animation:bns 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bns{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
+#inp-wrap{padding:9px 12px;border-top:0.5px solid #e0e0da;display:flex;gap:8px;align-items:flex-end;background:#fff}
+#uinp{flex:1;border:0.5px solid #ccc;border-radius:18px;padding:7px 13px;font-size:13px;resize:none;min-height:34px;max-height:88px;font-family:inherit;background:#f5f5f3;color:#1a1a18;outline:none}
+#uinp:focus{border-color:#1D9E75}
+#sbtn{width:34px;height:34px;border-radius:50%;background:#0F6E56;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sbtn svg{width:14px;height:14px;fill:white}
+#sbtn:disabled{background:#e0e0da}
+#sbtn:disabled svg{fill:#aaa}
+hr.div{border:none;border-top:0.5px solid #ddd;margin:5px 0}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="hdr">
+    <div class="hico">IGT</div>
+    <div>
+      <h2>Compria — Asistente de Compras Igarreta</h2>
+      <p>Catálogo histórico · Google Gemini AI · Plan Gratuito</p>
+    </div>
+    <div class="pill-on"></div>
+  </div>
+  <div id="ctx">
+    <span class="ctx-lbl">Área:</span>
+    <select id="sel-area" onchange="onCtx()">
+      <option value="">— Seleccioná —</option>
+      <option value="FABRICA/TALLER|FAB">Fábrica / Taller (FAB)</option>
+      <option value="ING-MANTENIMIENTO|mantenimiento">Mantenimiento (ING-MANT)</option>
+      <option value="ING-ENERGIA|ENE">Energía (ENE)</option>
+      <option value="ING-INGENIERIA|ING.">Ingeniería (ING.)</option>
+      <option value="ING-PRODUCCION VEHICULAR|PROD">Producción Vehicular (PROD)</option>
+      <option value="REPUESTOS|REP.">Repuestos (REP.)</option>
+      <option value="QUICK LANE|QL">Quick Lane (QL)</option>
+      <option value="ADMINISTRACION|ADM">Administración (ADM)</option>
+    </select>
+    <span class="ctx-lbl">Tipo:</span>
+    <select id="sel-tipo" onchange="onCtx()">
+      <option value="">— Seleccioná —</option>
+      <option value="Insumo / Material">Insumo</option>
+      <option value="Repuesto / Pieza">Repuesto</option>
+      <option value="Servicio / Contratación">Servicio</option>
+      <option value="Calibración EIME">Calibración</option>
+    </select>
+    <div id="bdgs" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+  </div>
+
+  <div id="msgs">
+    <div class="msg bot">
+      <div class="av bot">Co</div>
+      <div>
+        <div class="bbl">¡Hola! Soy <strong>Compria</strong>, tu asistente inteligente de compras. ✨<br><br>Mi objetivo es asesorarte y guiarte para que tus pedidos sean más efectivos, precisos y rápidos. Conozco a fondo nuestro catálogo y los datos técnicos de instrumentos para que cada solicitud esté impecable.<br><br>Contame, ¿qué necesitás gestionar hoy?</div>
+        <div class="chips">
+          <span class="chip" onclick="useChip(this)">Calibración de pinza Seijas</span>
+          <span class="chip" onclick="useChip(this)">Repuesto Ford con código</span>
+          <span class="chip" onclick="useChip(this)">Limpieza de fábrica</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="typing">
+    <div class="av bot">Co</div>
+    <div class="bbl" style="background:#f5f5f3;padding:9px 13px;border-radius:4px 14px 14px 14px">
+      <div style="display:flex;gap:5px;align-items:center;height:14px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    </div>
+  </div>
+
+  <div id="inp-wrap">
+    <textarea id="uinp" rows="1" placeholder="Describí el pedido..."></textarea>
+    <button id="sbtn" onclick="send()">
+      <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyBzswlLYvcUSPEfpo0bDMSqv1rlZWcv2lI';
+
+const SYSTEM_PROMPT = `Sos Compria, asistente de IGARRETA SACI. Misión: asesorar pedidos efectivos.
+REGLA 5 DÍAS HÁBILES: Fecha mínima 5 días hábiles. Si es urgente, preguntar qué proceso queda en riesgo.
+
+ESPECIFICACIONES SEGÚN TIPO:
+- Repuesto Ford/Agrale: código fabricante OBLIGATORIO (XXXX/YYYY/ZZ/)
+- Eléctricos: tensión(V) + corriente(A)
+- Calibración: número EIME + marca + modelo + rango. OT101.
+
+FORMATO SALIDA:
+─────────────────────────────
+RESUMEN PEDIDO PARA FINNEGANS
+─────────────────────────────
+Producto/Artículo: [nombre técnico + especif]
+Cantidad: [número]
+OT Asociada: [Código OT]
+Fecha Requerida: [DD/MM/AAAA]
+Observaciones: [Marca | Modelo | EIME | ID]
+─────────────────────────────`;
+
+const DATA_EIME = `LISTADO TÉCNICO EIMEs IGARRETA:
+- EIME10: Alesómetro "Carl Mahr" 100-160mm (MILLEMESS Serie 313753). Resp: Bruno del Valle (Pañol). Prox Control: 2028-07-22. Lugar: ISA.
+- EIME13: Alesómetro "Carl Mahr" 50-100mm (INTRAMESS Serie 873524). Resp: Bruno del Valle (Pañol). Prox Control: 2028-09-22. Lugar: ISA.
+- EIME30: Calibre de profundidad "Kanon" 0-300 mm (Serie F322). Prox Control: 2028-10-22.
+- EIME162: Pinza amperométrica digital UNI-T (UT204+). Resp: Seijas (Ingeniería). Prox Control: 2027-09-09. Criterio: V dc/ac ± 2 V, I dc/ac ± 0,3 A.
+- EIME163: Medidor de adherencia SCHWYZ (PAINT-11 Serie 1905P017). Resp: A Nicosia (Ingeniería). Prox Control: 2027-07-04.
+- EIME164: Medidor láser de distancias BOSCH (GLM 50-12).`;
+
+let areaCod='', areaCC='', tipo='';
+
+function onCtx(){
+  const av=document.getElementById('sel-area').value;
+  tipo=document.getElementById('sel-tipo').value;
+  areaCod=av.split('|')[0]||'';
+  const b=document.getElementById('bdgs'); b.innerHTML='';
+  if(areaCod){const x=document.createElement('span');x.className='badge';x.textContent=areaCod;b.appendChild(x);}
+  if(tipo){const x=document.createElement('span');x.className='badge';x.textContent=tipo;b.appendChild(x);}
+}
+
+const inp=document.getElementById('uinp');
+inp.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,88)+'px';});
+function useChip(el){inp.value=el.textContent;send();}
+
+function addBot(text){
+  const m=document.getElementById('msgs');
+  const d=document.createElement('div'); d.className='msg bot';
+  const f=text.replace(/─+/g,'<hr class="div">').replace(/
+/g,'<br>');
+  d.innerHTML=`<div class="av bot">Co</div><div class="bbl">${f}</div>`;
+  m.appendChild(d); m.scrollTop=m.scrollHeight;
+}
+function addUser(text){
+  const m=document.getElementById('msgs');
+  const d=document.createElement('div'); d.className='msg user';
+  d.innerHTML=`<div class="av user">Yo</div><div class="bbl">${text}</div>`;
+  m.appendChild(d); m.scrollTop=m.scrollHeight;
+}
+
+async function send(){
+  const text=inp.value.trim(); if(!text)return;
+  inp.value=''; addUser(text);
+  document.getElementById('typing').style.display='flex';
+  document.getElementById('sbtn').disabled=true;
+
+  const prompt = `${SYSTEM_PROMPT}
+
+EIMEs:
+${DATA_EIME}
+
+Contexto: Área ${areaCod}, Tipo ${tipo}
+
+Usuario: ${text}`;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    const reply = data.candidates[0].content.parts[0].text;
+    document.getElementById('typing').style.display='none';
+    addBot(reply);
+  } catch(e) {
+    document.getElementById('typing').style.display='none';
+    addBot("Error de conexión con Gemini. Verificá tu API Key.");
+  }
+  document.getElementById('sbtn').disabled=false;
+}
+</script>
+</body>
+</html>
